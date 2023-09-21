@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'services/service_locator.dart';
 import 'package:balooner/screens/controlls_screen.dart';
 import 'package:balooner/screens/settings_screen.dart';
-
+import 'package:balooner/screens/role_selection_screen.dart';
 void main() {
   setupLocator();
   runApp(ProviderScope(child: MyApp()));
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (BuildContext context) => ControllsScreen(),
+          '/': (BuildContext context) => RoleSelectionScreen(),
           'settings_route': (BuildContext context) => SettingsScreen(),
         });
   }

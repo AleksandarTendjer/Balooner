@@ -5,6 +5,7 @@ import 'package:balooner/models/mqtt_app_state.dart';
 import 'package:balooner/widgets/status_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
+import 'package:balooner/helpers/random_generator.dart';
 class ControllsScreen extends ConsumerStatefulWidget {
   const ControllsScreen({super.key});
 
@@ -16,6 +17,8 @@ class ControllsScreen extends ConsumerStatefulWidget {
 class _ControllsScreenState extends ConsumerState<ControllsScreen> {
   final TextEditingController _messageTextController = TextEditingController();
   final TextEditingController _topicTextController = TextEditingController();
+  static const type='controller';
+  final deviceName=RandomGenerator.generateRandomString(5);
   final _controller = ScrollController();
   late MQTTManager _manager;
   late BuildContext _context;
@@ -220,11 +223,8 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
   }
 
   void _publishMessage(String text) {
-    String osPrefix = 'Flutter_iOS';
-    if (Platform.isAndroid) {
-      osPrefix = 'Flutter_Android';
-    }
-    final String message = osPrefix + ' says: ' + text;
+
+    final String message = type+'/'+ deviceName +'/'+ text;
     _manager.publish(message);
   }
 
