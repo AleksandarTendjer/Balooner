@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:balooner/helpers/random_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:balooner/services/mqtt_service.dart';
@@ -120,13 +121,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _configureAndConnect() {
-    // TODO: Use UUID
-    String osPrefix = 'Flutter_iOS';
-    if (Platform.isAndroid) {
-      osPrefix = 'Flutter_Android';
-    }
+    String id = 'device_'+ RandomGenerator.md5RandomString();
+
     _manager.initializeMQTTClient(
-        host: _hostTextController.text, identifier: osPrefix);
+        host: _hostTextController.text, identifier: id);
     _manager.connect();
   }
 

@@ -5,11 +5,11 @@ import 'package:balooner/screens/controlls_screen.dart';
 import 'package:balooner/screens/settings_screen.dart';
 import 'package:balooner/screens/role_selection_screen.dart';
 void main() {
-  setupLocator();
   runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

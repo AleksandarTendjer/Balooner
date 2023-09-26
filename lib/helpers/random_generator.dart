@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
 
 
 class RandomGenerator {
-  static String generateRandomString(int length) {
-    const String _chars =
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    Random _rnd = Random();
-    return String.fromCharCodes(Iterable.generate(
-        length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+// md5 hashing a random number
+  static String md5RandomString() {
+    final randomNumber = Random().nextDouble();
+    final randomBytes = utf8.encode(randomNumber.toString());
+    final randomString = md5.convert(randomBytes).toString();
+    return randomString;
   }
 }

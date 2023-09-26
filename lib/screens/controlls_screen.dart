@@ -18,9 +18,9 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
   final TextEditingController _messageTextController = TextEditingController();
   final TextEditingController _topicTextController = TextEditingController();
   static const type='controller';
-  final deviceName=RandomGenerator.generateRandomString(5);
   final _controller = ScrollController();
   late MQTTManager _manager;
+  late String deviceName;
   late BuildContext _context;
 
   @override
@@ -223,7 +223,7 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
   }
 
   void _publishMessage(String text) {
-
+    deviceName=_manager.identifier;
     final String message = type+'/'+ deviceName +'/'+ text;
     _manager.publish(message);
   }

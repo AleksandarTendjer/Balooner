@@ -9,6 +9,10 @@ class MQTTManager extends ChangeNotifier {
   MQTTAppState _currentState = MQTTAppState();
   MqttServerClient? _client;
   late String _identifier;
+
+  String get identifier {
+    return _identifier;
+  }
   String? _host;
   String _topic = "";
 
