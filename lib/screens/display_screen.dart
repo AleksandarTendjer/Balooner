@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:balooner/game/balooner_game.dart';
+import 'package:flame/game.dart';
+
 import 'package:flutter/material.dart';
 import 'package:balooner/services/mqtt_service.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
@@ -18,10 +21,11 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   final _controller = ScrollController();
   late MQTTManager _manager;
   late BuildContext _context;
-
+  late Game game;
   @override
   Widget build(BuildContext context) {
     _manager = ref.watch(mqttManagerProvider);
+    game=new BaloonerGame(mqttManager: _manager);
     _context = context;
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);
@@ -67,6 +71,10 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
           prepareStateMessageFrom(manager.currentState.getAppConnectionState),
         ),
         _buildEditableColumn(manager.currentState),
+        // Include the Game widget and pass the GameManager
+        Expanded(
+          child: GameWidget(game: game)
+        )
       ],
     );
   }

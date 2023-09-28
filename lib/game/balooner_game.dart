@@ -1,37 +1,40 @@
 import 'dart:ui';
 import 'package:flame/game.dart';
-import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:balooner/models/Player.dart';
 import 'package:balooner/models/Baloon.dart';
 import 'package:balooner/services/mqtt_service.dart';
-class Game extends FlameGame {
+
+class BaloonerGame extends FlameGame  with HasCollisionDetection {
   final MQTTManager mqttManager;
   final List<Player> players = [];
   final List<Balloon> balloons = [];
+  String mqttCommand = ""; // Store the MQTT command here
 
-  Game({required this.mqttManager});
+  BaloonerGame({required this.mqttManager});
 
+  @override
+  Color backgroundColor() {
+    return  Color(0x00000000);
+  }
+
+  // Add a method to set the MQTT command
+  void setMqttCommand(String command) {
+    mqttCommand = command;
+  }
   @override
   void update(double dt) {
     //TODO: Update player's position based on MQTT commands (left, right, up, down)
-
-    players.forEach((player) => player.update('UP'));
+    print('Players count: ${players.length}, Balloons count: ${balloons.length}');
+    players.forEach((player) => player.updatePositionOnCommand(mqttCommand));
     balloons.forEach((balloon) => balloon.update(dt));
-
-    for (final player in players) {
-      for (final balloon in balloons) {
-        if (player.rect.overlaps(balloon.rect)) {
-          player.score++;
-          balloons.remove(balloon);
-          break;
-        }
-      }
-    }
   }
+
 
   @override
   void render(Canvas canvas) {
+    print('Render called');
+
     players.forEach((player) => player.render(canvas));
     balloons.forEach((balloon) => balloon.render(canvas));
 
