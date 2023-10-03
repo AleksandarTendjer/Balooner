@@ -9,12 +9,16 @@ class MQTTManager extends ChangeNotifier {
   MQTTAppState _currentState = MQTTAppState();
   MqttServerClient? _client;
   late String _identifier;
+  late  int _devicesCount=0;
+
+  int get devicesCount => _devicesCount;
 
   String get identifier {
     return _identifier;
   }
   String? _host;
   String _topic = "";
+
 
   void initializeMQTTClient({
     required String host,
@@ -98,23 +102,35 @@ class MQTTManager extends ChangeNotifier {
     _currentState.setAppConnectionState(MQTTAppConnectionState.connected);
     updateState();
     print('EXAMPLE::Mosquitto client connected....');
-    _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
-      final String pt =
-      MqttPublishPayload.bytesToStringAsString(recMess.payload.message!);
-      _currentState.setReceivedCommand(pt);
-      updateState();
-      print(
-          'EXAMPLE::Change notification:: topic is <${c[0].topic}>, payload is <-- $pt -->');});
     print('EXAMPLE::OnConnected client callback - Client connection was sucessful');
   }
 
   void subScribeTo(String topic) {
     // Save topic for future use
     _topic = topic;
+    this._devicesCount++;
     _client!.subscribe(topic, MqttQos.atLeastOnce);
   }
+String listenToMessageUpdates() {
+    late String payload='none';
+  try {
+    _client?.updates!.listen((messageList) {
+      final recMess = messageList[0];
+      if (recMess is! MqttReceivedMessage<MqttPublishMessage>) return;
+      final pubMess = recMess.payload;
+      final pt =
+      MqttPublishPayload.bytesToStringAsString(pubMess.payload.message);
+      print('EXAMPLE::Change notification:: topic is <${recMess
+          .topic}>, payload is <-- $pt -->');
+      print('EXAMPLE::Message list is :: topic is $messageList');
+      payload=pt;
+    });
+  } catch (e, s) {
+    print(s);
+  }
+    return payload;
 
+}
   /// Unsubscribe from a topic
   void unSubscribe(String topic) {
     _client!.unsubscribe(topic);
@@ -126,7 +142,6 @@ class MQTTManager extends ChangeNotifier {
   }
 
   void updateState() {
-    //controller.add(_currentState);
     notifyListeners();
   }
 }

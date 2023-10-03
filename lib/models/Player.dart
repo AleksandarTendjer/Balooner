@@ -15,7 +15,7 @@ class Player extends PositionComponent with  CollisionCallbacks  {
   @override
   Future<void>? onLoad() async {
     final defaultPaint = Paint();
-    sprite = await Sprite.load('assets/.png');
+    sprite = await Sprite.load('assets/bomb.png');
     size = Vector2(100, 100);
     anchor = Anchor.center;
     playerShape = RectangleHitbox()

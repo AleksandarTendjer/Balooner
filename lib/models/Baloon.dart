@@ -21,7 +21,7 @@ class Balloon extends SpriteComponent with  CollisionCallbacks  {
   @override
   Future<void>? onLoad() async {
     final defaultPaint = Paint();
-    sprite = await Sprite.load('crate.png');
+    sprite = await Sprite.load('assets/balloon.png');
     size = Vector2(100, 100);
     anchor = Anchor.center;
     baloonCircle = CircleHitbox()

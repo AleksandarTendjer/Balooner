@@ -25,7 +25,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   @override
   Widget build(BuildContext context) {
     _manager = ref.watch(mqttManagerProvider);
-    game=new BaloonerGame(mqttManager: _manager);
+    game=BaloonerGame(mqttManager: _manager);
     _context = context;
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);

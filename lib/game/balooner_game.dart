@@ -14,42 +14,75 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
   BaloonerGame({required this.mqttManager});
 
   @override
-  Color backgroundColor() {
-    return  Color(0x00000000);
+  Future<void> onLoad() async {
+    super.onLoad();
+    final devices = mqttManager.devicesCount;
+    print('player numbers are $devices');
+
+    createPlayersAndBalloons(devices);
   }
 
-  // Add a method to set the MQTT command
-  void setMqttCommand(String command) {
-    mqttCommand = command;
+  void createPlayersAndBalloons(int numberOfPlayers) {
+    for (var i = 0; i < numberOfPlayers; i++) {
+      final player = new Player(
+          Vector2(100.0, 100.0 + i * 60.0)); // Create a new player
+      players.add(player);
+      for (var i = 0; i < 10; i++) {
+        final balloon = Balloon(
+          Vector2.random(),
+        );
+        balloons.add(balloon);
+      }
+
+    }
+    print('player is added ${players.length}');
+    print('ballons are added ${balloons.length}');
   }
   @override
-  void update(double dt) {
-    //TODO: Update player's position based on MQTT commands (left, right, up, down)
-    print('Players count: ${players.length}, Balloons count: ${balloons.length}');
-    players.forEach((player) => player.updatePositionOnCommand(mqttCommand));
-    balloons.forEach((balloon) => balloon.update(dt));
+  void onAttach() {
+    addAll(players);
+    addAll(balloons);
   }
 
 
-  @override
-  void render(Canvas canvas) {
-    print('Render called');
+    // Add a method to set the MQTT command
+    void setMqttCommand(String command) {
+      mqttCommand = command;
+    }
+    @override
+    void update(double dt) {
+      super.update(dt);
+      //TODO: Update player's position based on MQTT commands (left, right, up, down)
+      final command = mqttManager.listenToMessageUpdates();
+      print(' The new message command is : $command\n');
+      setMqttCommand(command);
+      print('Players count: ${players.length}, Balloons count: ${balloons
+          .length}');
+      players.forEach((player) => player.updatePositionOnCommand(mqttCommand));
+      balloons.forEach((balloon) => balloon.update(dt));
+    }
 
-    players.forEach((player) => player.render(canvas));
-    balloons.forEach((balloon) => balloon.render(canvas));
 
-    final textStyle = TextStyle(color: Colors.white, fontSize: 20);
-    players.forEach((player) {
-      final text = TextSpan(
-        text: 'Player ${players.indexOf(player) + 1}: ${player.score}',
-        style: textStyle,
-      );
-      final textPainter = TextPainter(
-        text: text,
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      textPainter.paint(canvas, Offset(10, players.indexOf(player) * 30.0 + 10));
-    });
+    @override
+    void render(Canvas canvas) {
+      print('Render called');
+
+      players.forEach((player) => player.render(canvas));
+      balloons.forEach((balloon) => balloon.render(canvas));
+
+      final textStyle = TextStyle(color: Colors.white, fontSize: 20);
+      players.forEach((player) {
+        final text = TextSpan(
+          text: 'Player ${players.indexOf(player) + 1}: ${player.score}',
+          style: textStyle,
+        );
+        final textPainter = TextPainter(
+          text: text,
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        textPainter.paint(
+            canvas, Offset(10, players.indexOf(player) * 30.0 + 10));
+      });
+    }
   }
-}
