@@ -27,7 +27,6 @@ class MQTTAppState{
   }
 
   void clearText() {
-    _historyCommand = "";
     _receivedCommand = "";
   }
 

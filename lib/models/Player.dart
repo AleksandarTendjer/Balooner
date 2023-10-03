@@ -12,17 +12,18 @@ class Player extends PositionComponent with  CollisionCallbacks  {
   late Sprite sprite;
   Player(Vector2 position)
       : super();
+
   @override
   Future<void>? onLoad() async {
+    super.onLoad();
     final defaultPaint = Paint();
-    sprite = await Sprite.load('assets/bomb.png');
-    size = Vector2(100, 100);
-    anchor = Anchor.center;
     playerShape = RectangleHitbox()
       ..paint = defaultPaint
-      ..renderShape = true;
+      ..size = Vector2.all(10)
+    ..renderShape = true;
     add(playerShape);
-    return super.onLoad();
+    print('created the player');
+
   }
   @override
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent  other) {

@@ -3,33 +3,35 @@ import 'dart:math';
 import 'package:balooner/models/Player.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 
 
 
-class Balloon extends SpriteComponent with  CollisionCallbacks  {
+class Balloon extends CircleComponent
+with HasGameReference<FlameGame>, CollisionCallbacks  {
   double speedX = 1.0; // Initial horizontal speed
   double speedY = 0.0; // Initial vertical speed
   double changeDirectionTime = 5.0; // Time to change direction (in seconds)
   double elapsedTime = 0.0; // Elapsed time since the last direction change
-  final _defaultColor = Colors.cyan;
 
   late CircleHitbox baloonCircle;
   Balloon(Vector2 position)
       : super();
   @override
-  Future<void>? onLoad() async {
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
     final defaultPaint = Paint();
-    sprite = await Sprite.load('assets/balloon.png');
-    size = Vector2(100, 100);
     anchor = Anchor.center;
     baloonCircle = CircleHitbox()
       ..paint = defaultPaint
+      ..size = Vector2.all(10)
       ..renderShape = true;
     add(baloonCircle);
-    return super.onLoad();
   }
+
   @override
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent  other) {
     baloonCircle.paint.color=Colors.amberAccent;
