@@ -16,7 +16,10 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
   @override
   Future<void> onLoad() async {
     super.onLoad();
-
+    await images.loadAll([
+      'ember.png',
+      'water_enemy.png',
+    ]);
     final devices = mqttManager.devicesCount;
     print('player numbers are $devices');
 
@@ -26,11 +29,11 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
   void createPlayersAndBalloons(int numberOfPlayers) {
     for (var i = 0; i < numberOfPlayers; i++) {
       final player =  Player(
-          Vector2(100.0, 100.0 + i * 60.0)); // Create a new player
+        position:  Vector2(canvasSize.x/2, canvasSize.y/2));
       players.add(player);
       for (var i = 0; i < 10; i++) {
         final balloon = Balloon(
-          Vector2.random(),
+        position:  Vector2.random(),
         );
         balloons.add(balloon);
       }
@@ -73,19 +76,5 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
       players.forEach((player) => player.render(canvas));
       balloons.forEach((balloon) => balloon.render(canvas));
 
-      final textStyle = TextStyle(color: Colors.white, fontSize: 20);
-      players.forEach((player) {
-        final text = TextSpan(
-          text: 'Player ${players.indexOf(player) + 1}: ${player.score}',
-          style: textStyle,
-        );
-        final textPainter = TextPainter(
-          text: text,
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        textPainter.paint(
-            canvas, Offset(10, players.indexOf(player) * 30.0 + 10));
-      });
     }
   }

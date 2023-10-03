@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:balooner/game/balooner_game.dart';
 import 'package:balooner/models/Player.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -9,32 +10,33 @@ import 'package:flutter/material.dart';
 
 
 
-class Balloon extends CircleComponent
-with HasGameReference<FlameGame>, CollisionCallbacks  {
+class Balloon  extends SpriteAnimationComponent
+with HasGameReference<BaloonerGame>, CollisionCallbacks  {
   double speedX = 1.0; // Initial horizontal speed
   double speedY = 0.0; // Initial vertical speed
   double changeDirectionTime = 5.0; // Time to change direction (in seconds)
   double elapsedTime = 0.0; // Elapsed time since the last direction change
 
-  late CircleHitbox baloonCircle;
-  Balloon(Vector2 position)
-      : super();
-  @override
-  @override
-  Future<void> onLoad() async {
-    super.onLoad();
-    final defaultPaint = Paint();
-    anchor = Anchor.center;
-    baloonCircle = CircleHitbox()
-      ..paint = defaultPaint
-      ..size = Vector2.all(10)
-      ..renderShape = true;
-    add(baloonCircle);
-  }
+  Balloon({
+    required super.position,
+  });
 
   @override
-  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent  other) {
-    baloonCircle.paint.color=Colors.amberAccent;
+  Future<void>? onLoad() async {
+    super.onLoad();
+    animation = SpriteAnimation.fromFrameData(
+      game.images.fromCache('ember.png'),
+      SpriteAnimationData.sequenced(
+        amount: 4,
+        textureSize: Vector2.all(40),
+        stepTime: 0.70,
+      ),
+    );
+    print('created the balloon');
+
+  }
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
     if (other is Player) {
       // Increase the player's score and remove the balloon
       other.score++;

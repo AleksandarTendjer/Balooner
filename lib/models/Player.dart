@@ -1,3 +1,4 @@
+import 'package:balooner/game/balooner_game.dart';
 import 'package:balooner/models/Baloon.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -6,28 +7,28 @@ import 'package:flutter/material.dart';
 
 
 
-class Player extends PositionComponent with  CollisionCallbacks  {
+class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , CollisionCallbacks  {
   late int score=0;
-  late RectangleHitbox playerShape;
-  late Sprite sprite;
-  Player(Vector2 position)
-      : super();
+  Player({
+    required super.position,
+  }) : super(size: Vector2.all(64), anchor: Anchor.center);
 
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    final defaultPaint = Paint();
-    playerShape = RectangleHitbox()
-      ..paint = defaultPaint
-      ..size = Vector2.all(10)
-    ..renderShape = true;
-    add(playerShape);
+    animation = SpriteAnimation.fromFrameData(
+      game.images.fromCache('water_enemy.png'),
+      SpriteAnimationData.sequenced(
+        amount: 4,
+        textureSize: Vector2.all(20),
+        stepTime: 0.12,
+      ),
+    );
     print('created the player');
 
   }
   @override
-  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent  other) {
-    playerShape.paint.color=Colors.amberAccent;
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
     if (other is Balloon) {
       // Increase the player's score and remove the balloon
       score++;
