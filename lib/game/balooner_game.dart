@@ -9,7 +9,7 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
   final MQTTManager mqttManager;
   final List<Player> players = [];
   final List<Balloon> balloons = [];
-  String mqttCommand = ""; // Store the MQTT command here
+  String mqttCommand = "";
 
   BaloonerGame({required this.mqttManager});
 
@@ -19,34 +19,33 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     await images.loadAll([
       'ember.png',
       'water_enemy.png',
+      'bomb.png'
     ]);
     final devices = mqttManager.devicesCount;
-    print('player numbers are $devices');
 
     createPlayersAndBalloons(devices);
+
   }
 
   void createPlayersAndBalloons(int numberOfPlayers) {
     for (var i = 0; i < numberOfPlayers; i++) {
+      print('canvas size is: ${canvasSize.x/2} and ${canvasSize.y/2}');
       final player =  Player(
-        position:  Vector2(canvasSize.x/2, canvasSize.y/2));
+        position:  Vector2(canvasSize.x/2, canvasSize.y/2)
+      );
       players.add(player);
       for (var i = 0; i < 10; i++) {
         final balloon = Balloon(
-        position:  Vector2.random(),
-        );
+        position:   Vector2( canvasSize.x / 2 + i * 20,
+          canvasSize.y / 2 + i * 20,
+        ));
         balloons.add(balloon);
       }
-
     }
-    print('player is added ${players.length}');
-    print('ballons are added ${balloons.length}');
-  }
-  @override
-  void onAttach() {
     addAll(players);
     addAll(balloons);
   }
+
 
 
     // Add a method to set the MQTT command
@@ -55,7 +54,6 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     }
     @override
     void update(double dt) {
-    print('update called');
       super.update(dt);
       final command = mqttManager.currentState.getReceivedText;
       mqttManager.currentState.clearText();
@@ -64,7 +62,7 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
       print('Players count: ${players.length}, Balloons count: ${balloons
           .length}');
       players.forEach((player) => player.updatePositionOnCommand(mqttCommand));
-      balloons.forEach((balloon) => balloon.update(dt));
+      balloons.forEach((balloon) =>{ balloon.update(dt)});
     }
 
 
@@ -73,8 +71,17 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
       print('Render called');
       final paint = Paint()..color = Colors.blue;
       canvas.drawRect(size.toRect(), paint);
-      players.forEach((player) => player.render(canvas));
-      balloons.forEach((balloon) => balloon.render(canvas));
+      for (var balloon in balloons) {
+        canvas.save();
+        balloon.render(canvas);
+        canvas.restore();
+      }
+      for (var player in players) {
+      canvas.save();
+      player.render(canvas);
+      canvas.restore();
+      }
+
 
     }
   }

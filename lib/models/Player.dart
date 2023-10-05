@@ -3,7 +3,6 @@ import 'package:balooner/models/Baloon.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
-import 'package:flutter/material.dart';
 
 
 
@@ -11,7 +10,7 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   late int score=0;
   Player({
     required super.position,
-  }) : super(size: Vector2.all(64), anchor: Anchor.center);
+  }) : super(size: Vector2.all(20), anchor: Anchor.center);
 
   @override
   Future<void>? onLoad() async {
@@ -19,9 +18,9 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
     animation = SpriteAnimation.fromFrameData(
       game.images.fromCache('water_enemy.png'),
       SpriteAnimationData.sequenced(
-        amount: 4,
-        textureSize: Vector2.all(20),
-        stepTime: 0.12,
+        amount: 2,
+        textureSize: Vector2.all(16),
+        stepTime: 0.2,
       ),
     );
     print('created the player');
@@ -30,14 +29,16 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
     if (other is Balloon) {
-      // Increase the player's score and remove the balloon
       score++;
       other.removeFromParent();
     }
   }
-  void updatePositionOnCommand(String command) {
-    final double moveSpeed = 5.0; // Adjust this value to control the player's movement speed
-
+  void updatePositionOnCommand(String deviceCommand) {
+    final double moveSpeed = 0.01; // Adjust this value to control the player's movement speed
+    print('deviceCommand is $deviceCommand');
+    print('positition player is ${position.x} and ${position.y}');
+  final command=deviceCommand.split('/').last;
+  print('$command');
     switch (command) {
       case "up":
         position.y -= moveSpeed; // Move the player up
@@ -55,5 +56,9 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
       // Handle other commands or errors
         break;
     }
+  }
+  @override
+  void update(double dt) {
+    super.update(dt);
   }
 }

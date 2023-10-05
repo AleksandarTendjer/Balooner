@@ -6,12 +6,11 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
-import 'package:flutter/material.dart';
 
 
 
 class Balloon  extends SpriteAnimationComponent
-with HasGameReference<BaloonerGame>, CollisionCallbacks  {
+with HasGameRef<BaloonerGame>, CollisionCallbacks  {
   double speedX = 1.0; // Initial horizontal speed
   double speedY = 0.0; // Initial vertical speed
   double changeDirectionTime = 5.0; // Time to change direction (in seconds)
@@ -19,16 +18,16 @@ with HasGameReference<BaloonerGame>, CollisionCallbacks  {
 
   Balloon({
     required super.position,
-  });
+  }): super(size: Vector2.all(20), anchor: Anchor.center);
 
   @override
   Future<void>? onLoad() async {
     super.onLoad();
     animation = SpriteAnimation.fromFrameData(
-      game.images.fromCache('ember.png'),
+      gameRef.images.fromCache('ember.png'),
       SpriteAnimationData.sequenced(
         amount: 4,
-        textureSize: Vector2.all(40),
+        textureSize: Vector2.all(16),
         stepTime: 0.70,
       ),
     );
@@ -45,11 +44,17 @@ with HasGameReference<BaloonerGame>, CollisionCallbacks  {
 
   @override
   void update(double dt) {
+    if (position.x < 0 || position.x > gameRef.size.x) {
+      speedX = -speedX; // Reverse horizontal direction
+    }
+    if (position.y < 0 || position.y > gameRef.size.y) {
+      speedY = -speedY; // Reverse vertical direction
+    }
     elapsedTime += dt;
+    position.x += speedX * dt;
+    position.y += speedY*dt;
 
-    position.x += speedX;
-    position.y += speedY;
-
+    print('positition ballon is ${position.x} and ${position.y}');
     if (elapsedTime >= changeDirectionTime) {
       final random = Random();
       speedX = (random.nextDouble() - 0.5) * 2.0; // Random horizontal speed between -1 and 1
@@ -57,5 +62,7 @@ with HasGameReference<BaloonerGame>, CollisionCallbacks  {
 
       elapsedTime = 0.0;
     }
+    super.update(dt);
+
   }
 }
