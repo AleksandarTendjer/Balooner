@@ -10,10 +10,10 @@ import 'package:flame/sprite.dart';
 
 
 class Balloon  extends SpriteAnimationComponent
-with HasGameRef<BaloonerGame>, CollisionCallbacks  {
+with HasGameRef<BaloonerGame>  {
   double speedX = 1.0; // Initial horizontal speed
   double speedY = 0.0; // Initial vertical speed
-  double changeDirectionTime = 5.0; // Time to change direction (in seconds)
+  double changeDirectionTime = 3.0; // Time to change direction (in seconds)
   double elapsedTime = 0.0; // Elapsed time since the last direction change
 
   Balloon({
@@ -31,16 +31,10 @@ with HasGameRef<BaloonerGame>, CollisionCallbacks  {
         stepTime: 0.70,
       ),
     );
-    print('created the balloon');
+    add(RectangleHitbox()..collisionType = CollisionType.passive);
 
   }
-  @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
-    if (other is Player) {
-      // Increase the player's score and remove the balloon
-      other.score++;
-    }
-  }
+
 
   @override
   void update(double dt) {
@@ -51,8 +45,8 @@ with HasGameRef<BaloonerGame>, CollisionCallbacks  {
       speedY = -speedY; // Reverse vertical direction
     }
     elapsedTime += dt;
-    position.x += speedX * dt;
-    position.y += speedY*dt;
+    position.x += speedX*10;
+    position.y += speedY*10;
 
     print('positition ballon is ${position.x} and ${position.y}');
     if (elapsedTime >= changeDirectionTime) {

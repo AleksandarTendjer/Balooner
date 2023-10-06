@@ -23,7 +23,7 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
         stepTime: 0.2,
       ),
     );
-    print('created the player');
+    add(CircleHitbox());
 
   }
   @override
@@ -34,7 +34,7 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
     }
   }
   void updatePositionOnCommand(String deviceCommand) {
-    final double moveSpeed = 0.01; // Adjust this value to control the player's movement speed
+    final double moveSpeed = 0.2; // Adjust this value to control the player's movement speed
     print('deviceCommand is $deviceCommand');
     print('positition player is ${position.x} and ${position.y}');
   final command=deviceCommand.split('/').last;
