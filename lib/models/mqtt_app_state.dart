@@ -1,4 +1,4 @@
-enum MQTTAppConnectionState { connected, disconnected, connecting, connectedSubscribed, connectedUnSubscribed }
+enum MQTTAppConnectionState { connected, disconnected, connecting, connectedSubscribed,subscribing, connectedUnSubscribed }
 String prepareStateMessageFrom(MQTTAppConnectionState state) {
   switch (state) {
     case MQTTAppConnectionState.connected:
@@ -9,14 +9,19 @@ String prepareStateMessageFrom(MQTTAppConnectionState state) {
       return 'Disconnected';
     case MQTTAppConnectionState.connectedSubscribed:
       return 'Subscribed';
+    case MQTTAppConnectionState.subscribing:
+      return 'subscribing';
     case MQTTAppConnectionState.connectedUnSubscribed:
       return 'Unsubscribed';
   }
 }
 class MQTTAppState{
   MQTTAppConnectionState _appConnectionState = MQTTAppConnectionState.disconnected;
+
+  MQTTAppConnectionState get appConnectionState => _appConnectionState;
   String _receivedCommand = '';
   String _historyCommand = '';
+
 
   void setReceivedCommand(String command) {
     _receivedCommand = command;
@@ -40,6 +45,8 @@ class MQTTAppState{
         return 'Disconnected';
       case MQTTAppConnectionState.connectedSubscribed:
         return 'Subscribed';
+      case MQTTAppConnectionState.subscribing:
+        return 'subscribing';
       case MQTTAppConnectionState.connectedUnSubscribed:
         return 'Unsubscribed';
     }

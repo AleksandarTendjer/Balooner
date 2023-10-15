@@ -1,17 +1,28 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:balooner/models/Player.dart';
 import 'package:balooner/models/Baloon.dart';
 import 'package:balooner/services/mqtt_service.dart';
+import 'package:balooner/providers/mqtt_service_provider.dart';
 
 class BaloonerGame extends FlameGame  with HasCollisionDetection {
-  final MQTTManager mqttManager;
+   late MQTTManager _mqttManager;
+
+  MQTTManager get mqttManager => _mqttManager;
+
+  set mqttManager(MQTTManager value) {
+    _mqttManager = value;
+  }
   final List<Player> players = [];
   final List<Balloon> balloons = [];
-  String mqttCommand = "";
 
-  BaloonerGame({required this.mqttManager});
+
+   BaloonerGame(mqttManager){
+     _mqttManager=mqttManager;
+     updateMqttManager(mqttManager);
+   }
 
   @override
   Future<void> onLoad() async {
@@ -31,6 +42,7 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     for (var i = 0; i < numberOfPlayers; i++) {
       print('canvas size is: ${canvasSize.x/2} and ${canvasSize.y/2}');
       final player =  Player(
+        mqttManager: mqttManager,
         position:  Vector2(canvasSize.x/2, canvasSize.y/2)
       );
       players.add(player);
@@ -45,23 +57,20 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     addAll(players);
     addAll(balloons);
   }
-
-
-
-    // Add a method to set the MQTT command
-    void setMqttCommand(String command) {
-      mqttCommand = command;
-    }
-    @override
-    void update(double dt) {
-      final command = mqttManager.currentState.getReceivedText;
-      mqttManager.currentState.clearText();
-      print(' The new message command is : $command\n');
-      setMqttCommand(command);
-      print('Players count: ${players.length}, Balloons count: ${balloons
-          .length}');
-      players.forEach((player) => player.updatePositionOnCommand(mqttCommand));
-      super.update(dt);
-    }
-
+   void updateMqttManager(MQTTManager newManager) {
+     print("updated the manager for all players ");
+      mqttManager=newManager;
+     for (var player in players) {
+       print("updated the manager for the player1 ");
+       player.updateMqttManager(newManager);
+     }
+   }
+   @override
+   void update(double dt) {
+     if(dt==15){
+       removeAll(players);
+       removeAll(balloons);
+       exit(100);
+     }
+   }
   }

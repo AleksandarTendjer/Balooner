@@ -19,14 +19,27 @@ class DisplayScreen extends ConsumerStatefulWidget {
 class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   final TextEditingController _topicTextController = TextEditingController();
   final _controller = ScrollController();
-  late MQTTManager _manager;
+  late MQTTManager _manager=MQTTManager();
   late BuildContext _context;
-  late Game game;
+  late BaloonerGame game;
   @override
   Widget build(BuildContext context) {
-    _manager = ref.watch(mqttManagerProvider);
-    game=BaloonerGame(mqttManager: _manager);
+    if(_manager.currentState==MQTTAppConnectionState.disconnected){
+      _manager=ref.read(mqttManagerProvider);
+    }
+    _manager=ref.read(mqttManagerProvider);
+    print(" the state upon build is ${_manager.currentState.getAppConnectionState}");
+      ref.listen<MQTTManager>(mqttManagerProvider, (previous, next) {
+        print("teh state of the next is ${next.currentState.appConnectionState} and current state is : ${_manager.currentState.appConnectionState}");
+
+        if(next.currentState.getAppConnectionState==MQTTAppConnectionState.connectedSubscribed) {
+
+          _manager = next;
+          game.updateMqttManager(next);
+        }  },onError: (error, stackTrace) => print("error is: ${error}"),);
+    game=BaloonerGame(_manager);
     _context = context;
+
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);
     }
@@ -173,7 +186,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
       if (enteredText != null && enteredText.isNotEmpty) {
         _manager.subScribeTo(_topicTextController.text);
       }
+      }
     }
   }
 
-}

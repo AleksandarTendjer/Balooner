@@ -77,6 +77,15 @@ class MQTTManager extends ChangeNotifier {
     _currentState
         .setAppConnectionState(MQTTAppConnectionState.connectedSubscribed);
     updateState();
+    _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
+      final String pt =
+      MqttPublishPayload.bytesToStringAsString(recMess.payload.message!);
+      _currentState.setReceivedCommand(pt);
+      updateState();
+      print(
+          'EXAMPLE::Change notification:: topic is <${c[0].topic}>, payload is <-- $pt -->');
+    });
   }
 
   void onUnsubscribed(String? topic) {
@@ -102,21 +111,16 @@ class MQTTManager extends ChangeNotifier {
     _currentState.setAppConnectionState(MQTTAppConnectionState.connected);
     updateState();
     print('EXAMPLE::Mosquitto client connected....');
-    _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
-      final String pt =
-      MqttPublishPayload.bytesToStringAsString(recMess.payload.message!);
-      _currentState.setReceivedCommand(pt);
-      updateState();
-      print(
-          'EXAMPLE::Change notification:: topic is <${c[0].topic}>, payload is <-- $pt -->');});
+
     print('EXAMPLE::OnConnected client callback - Client connection was sucessful');
   }
 
   void subScribeTo(String topic) {
     // Save topic for future use
     _topic = topic;
-    this._devicesCount++;
+    _currentState.setAppConnectionState(MQTTAppConnectionState.subscribing);
+    updateState();
+    _devicesCount++;
     _client!.subscribe(topic, MqttQos.atLeastOnce);
   }
 

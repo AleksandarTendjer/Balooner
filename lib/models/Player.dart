@@ -1,5 +1,6 @@
 import 'package:balooner/game/balooner_game.dart';
 import 'package:balooner/models/Baloon.dart';
+import 'package:balooner/services/mqtt_service.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
@@ -8,8 +9,17 @@ import 'package:flame/sprite.dart';
 
 class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , CollisionCallbacks  {
   late int score=0;
+
+  late MQTTManager mqttManager;
+
+  void updateMqttManager(MQTTManager newManager) {
+    mqttManager = newManager;
+    print("updated the manager for the player this");
+
+  }
   Player({
     required super.position,
+    required this.mqttManager,
   }) : super(size: Vector2.all(20), anchor: Anchor.center);
 
   @override
@@ -31,10 +41,11 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
     if (other is Balloon) {
       score++;
       other.removeFromParent();
+
     }
   }
   void updatePositionOnCommand(String deviceCommand) {
-    final double moveSpeed = 0.2; // Adjust this value to control the player's movement speed
+    final double moveSpeed = 15; // Adjust this value to control the player's movement speed
     print('deviceCommand is $deviceCommand');
     print('positition player is ${position.x} and ${position.y}');
   final command=deviceCommand.split('/').last;
@@ -59,6 +70,10 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   }
   @override
   void update(double dt) {
+    final command = mqttManager.currentState.getReceivedText;
+    this.updatePositionOnCommand(command);
     super.update(dt);
+    mqttManager.currentState.clearText();
   }
+
 }
