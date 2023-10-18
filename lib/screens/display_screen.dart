@@ -1,13 +1,11 @@
-import 'dart:io';
 import 'package:balooner/game/balooner_game.dart';
-import 'package:flame/game.dart';
-
-import 'package:flutter/material.dart';
-import 'package:balooner/services/mqtt_service.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
-import 'package:balooner/widgets/status_bar.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
+import 'package:balooner/services/mqtt_service.dart';
+import 'package:balooner/widgets/status_bar.dart';
+import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DisplayScreen extends ConsumerStatefulWidget {
   const DisplayScreen({Key? key}) : super(key: key);
@@ -17,28 +15,22 @@ class DisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _DisplayScreenState extends ConsumerState<DisplayScreen> {
-  final TextEditingController _topicTextController = TextEditingController();
   final _controller = ScrollController();
-  late MQTTManager _manager=MQTTManager();
-  late BuildContext _context;
+  late MQTTManager _manager = MQTTManager();
   late BaloonerGame game;
+
+  @override
+  void initState() {
+    super.initState();
+    _manager = ref.read(mqttManagerProvider);
+    game = BaloonerGame(_manager);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if(_manager.currentState==MQTTAppConnectionState.disconnected){
-      _manager=ref.read(mqttManagerProvider);
-    }
-    _manager=ref.read(mqttManagerProvider);
-    print(" the state upon build is ${_manager.currentState.getAppConnectionState}");
-      ref.listen<MQTTManager>(mqttManagerProvider, (previous, next) {
-        print("teh state of the next is ${next.currentState.appConnectionState} and current state is : ${_manager.currentState.appConnectionState}");
-
-        if(next.currentState.getAppConnectionState==MQTTAppConnectionState.connectedSubscribed) {
-
-          _manager = next;
-          game.updateMqttManager(next);
-        }  },onError: (error, stackTrace) => print("error is: ${error}"),);
-    game=BaloonerGame(_manager);
-    _context = context;
+    _manager = ref.watch(mqttManagerProvider);
+    game.updateMqttManager(_manager);
+    print(" the state upon build is ${_manager.currentState.getHistoryText}");
 
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);
@@ -79,114 +71,20 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   Widget _buildColumn(MQTTManager manager) {
     return Column(
       children: <Widget>[
-        StatusBar(
-          statusMessage:
-          prepareStateMessageFrom(manager.currentState.getAppConnectionState),
-        ),
-        _buildEditableColumn(manager.currentState),
+        Consumer(builder: (context, ref, child) {
+          return StatusBar(
+            statusMessage: prepareStateMessageFrom(
+                _manager.currentState.getAppConnectionState),
+          );
+        }),
         // Include the Game widget and pass the GameManager
         Expanded(
-          child: GameWidget(game: game)
-        )
+          child: GameWidget(game: game),
+        ),
       ],
     );
   }
 
-  Widget _buildEditableColumn(MQTTAppState currentAppState) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: <Widget>[
-          _buildTopicSubscribeRow(currentAppState),
-          const SizedBox(height: 10),
-          _buildScrollableTextWith(currentAppState.getHistoryText),
-        ],
-      ),
-    );
-  }
-  Widget _buildScrollableTextWith(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: Container(
-        padding: const EdgeInsets.only(left: 10.0, right: 5.0),
-        width: 400,
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.black12,
-        ),
-        child: SingleChildScrollView(
-          controller: _controller,
-          child: Text(text),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTextFieldWith(TextEditingController controller, String hintText,
-      MQTTAppConnectionState state) {
-    bool shouldEnable = false;
-    if (controller == _topicTextController &&
-        (state == MQTTAppConnectionState.connected ||
-            state == MQTTAppConnectionState.connectedUnSubscribed)) {
-      shouldEnable = true;
-    }
-    return TextField(
-      enabled: shouldEnable,
-      controller: controller,
-      decoration: InputDecoration(
-        contentPadding:
-        const EdgeInsets.only(left: 0, bottom: 0, top: 0, right: 0),
-        labelText: hintText,
-      ),
-    );
-  }
-
-  Widget _buildTopicSubscribeRow(MQTTAppState currentAppState) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        Expanded(
-          child: _buildTextFieldWith(
-            _topicTextController,
-            'Enter a topic to subscribe or listen',
-            currentAppState.getAppConnectionState,
-          ),
-        ),
-        _buildSubscribeButtonFrom(currentAppState.getAppConnectionState),
-      ],
-    );
-  }
-
-  Widget _buildSubscribeButtonFrom(MQTTAppConnectionState state) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.green,
-        disabledForegroundColor: Colors.grey,
-        disabledBackgroundColor: Colors.black38.withOpacity(0.12),
-      ),
-      onPressed: (state == MQTTAppConnectionState.connectedSubscribed) ||
-          (state == MQTTAppConnectionState.connectedUnSubscribed) ||
-          (state == MQTTAppConnectionState.connected)
-          ? () {
-        _handleSubscribePress(state);
-      }
-          : null,
-      child: state == MQTTAppConnectionState.connectedSubscribed
-          ? const Text('Unsubscribe')
-          : const Text('Subscribe'),
-    );
-  }
-  void _handleSubscribePress(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.connectedSubscribed) {
-      _manager.unSubscribeFromCurrentTopic();
-    } else {
-      String enteredText = _topicTextController.text;
-      if (enteredText != null && enteredText.isNotEmpty) {
-        _manager.subScribeTo(_topicTextController.text);
-      }
-      }
-    }
   }
 

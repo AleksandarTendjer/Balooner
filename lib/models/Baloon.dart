@@ -1,11 +1,8 @@
 import 'dart:math';
 
 import 'package:balooner/game/balooner_game.dart';
-import 'package:balooner/models/Player.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:flame/sprite.dart';
 
 
 
@@ -24,7 +21,7 @@ with HasGameRef<BaloonerGame>  {
   Future<void>? onLoad() async {
     super.onLoad();
     animation = SpriteAnimation.fromFrameData(
-      gameRef.images.fromCache('ember.png'),
+      gameRef.images.fromCache('star.png'),
       SpriteAnimationData.sequenced(
         amount: 4,
         textureSize: Vector2.all(16),

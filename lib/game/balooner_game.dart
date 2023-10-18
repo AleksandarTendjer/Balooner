@@ -1,41 +1,34 @@
-import 'dart:io';
-import 'dart:ui';
-import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
-import 'package:balooner/models/Player.dart';
 import 'package:balooner/models/Baloon.dart';
+import 'package:balooner/models/Player.dart';
 import 'package:balooner/services/mqtt_service.dart';
-import 'package:balooner/providers/mqtt_service_provider.dart';
+import 'package:flame/flame.dart';
+import 'package:flame/game.dart';
 
-class BaloonerGame extends FlameGame  with HasCollisionDetection {
-   late MQTTManager _mqttManager;
+class BaloonerGame extends FlameGame with HasCollisionDetection {
+  late MQTTManager _mqttManager;
 
   MQTTManager get mqttManager => _mqttManager;
 
   set mqttManager(MQTTManager value) {
     _mqttManager = value;
   }
+
   final List<Player> players = [];
   final List<Balloon> balloons = [];
 
-
-   BaloonerGame(mqttManager){
-     _mqttManager=mqttManager;
-     updateMqttManager(mqttManager);
-   }
+  BaloonerGame(mqttManager) {
+    print("new ballooner game isntance");
+    _mqttManager = mqttManager;
+    updateMqttManager(mqttManager);
+  }
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    await images.loadAll([
-      'ember.png',
-      'water_enemy.png',
-      'bomb.png'
-    ]);
+    await images.loadAll(['water_enemy.png', 'star.png']);
     final devices = mqttManager.devicesCount;
 
     createPlayersAndBalloons(devices);
-
   }
 
   void createPlayersAndBalloons(int numberOfPlayers) {
@@ -48,7 +41,8 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
       players.add(player);
       for (var i = 0; i < 10; i++) {
         final balloon = Balloon(
-        position:   Vector2( canvasSize.x / 2 + i * 20,
+            position: Vector2(
+          canvasSize.x / 2 + i * 20,
           canvasSize.y / 2 + i * 20,
         ));
         balloons.add(balloon);
@@ -57,20 +51,22 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     addAll(players);
     addAll(balloons);
   }
-   void updateMqttManager(MQTTManager newManager) {
-     print("updated the manager for all players ");
-      mqttManager=newManager;
-     for (var player in players) {
-       print("updated the manager for the player1 ");
-       player.updateMqttManager(newManager);
-     }
-   }
-   @override
-   void update(double dt) {
-     if(dt==15){
-       removeAll(players);
-       removeAll(balloons);
-       exit(100);
-     }
-   }
+
+  void updateMqttManager(MQTTManager newManager) {
+    mqttManager = newManager;
+    for (var player in players) {
+      print("updated the manager for the player1 ");
+      player.updateMqttManager(newManager);
+    }
   }
+
+  @override
+  void onRemove() {
+    // Optional based on your game needs.
+    removeAll(children);
+    processLifecycleEvents();
+    Flame.images.clearCache();
+    Flame.assets.clearCache();
+    // Any other code that you want to run when the game is removed.
+  }
+}

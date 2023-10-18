@@ -1,32 +1,26 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:balooner/services/mqtt_service.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
-import 'package:balooner/widgets/status_bar.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
-import 'package:balooner/helpers/random_generator.dart';
+import 'package:balooner/services/mqtt_service.dart';
+import 'package:balooner/widgets/status_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class ControllsScreen extends ConsumerStatefulWidget {
   const ControllsScreen({super.key});
 
   @override
   ConsumerState<ControllsScreen> createState() => _ControllsScreenState();
-
 }
 
 class _ControllsScreenState extends ConsumerState<ControllsScreen> {
-  final TextEditingController _messageTextController = TextEditingController();
-  final TextEditingController _topicTextController = TextEditingController();
   static const type='controller';
   final _controller = ScrollController();
   late MQTTManager _manager;
   late String deviceName;
-  late BuildContext _context;
 
   @override
   Widget build(BuildContext context) {
     _manager = ref.watch(mqttManagerProvider);
-    _context=context;
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);
     }
@@ -77,8 +71,6 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
       padding: const EdgeInsets.all(20.0),
       child: Column(
         children: <Widget>[
-          _buildTopicSubscribeRow(currentAppState),
-          const SizedBox(height: 10),
           _buildPublishMessageRow(currentAppState),
           const SizedBox(height: 10),
           _buildScrollableTextWith(currentAppState.getHistoryText),
@@ -132,63 +124,6 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
       }   : null
     );
   }
-  Widget _buildTextFieldWith(TextEditingController controller, String hintText,
-      MQTTAppConnectionState state) {
-    bool shouldEnable = false;
-    if (controller == _messageTextController &&
-        state == MQTTAppConnectionState.connectedSubscribed) {
-      shouldEnable = true;
-    } else if ((controller == _topicTextController &&
-        (state == MQTTAppConnectionState.connected ||
-            state == MQTTAppConnectionState.connectedUnSubscribed))) {
-      shouldEnable = true;
-    }
-    return TextField(
-        enabled: shouldEnable,
-        controller: controller,
-        decoration: InputDecoration(
-          contentPadding:
-          const EdgeInsets.only(left: 0, bottom: 0, top: 0, right: 0),
-          labelText: hintText,
-        ));
-  }
-
-
-
-  Widget _buildTopicSubscribeRow(MQTTAppState currentAppState) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        Expanded(
-          child: _buildTextFieldWith(
-              _topicTextController,
-              'Enter a topic to subscribe or listen',
-              currentAppState.getAppConnectionState),
-        ),
-        _buildSubscribeButtonFrom(currentAppState.getAppConnectionState)
-      ],
-    );
-  }
-
-  Widget _buildSubscribeButtonFrom(MQTTAppConnectionState state) {
-    return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: Colors.green,
-          disabledForegroundColor: Colors.grey,
-          disabledBackgroundColor: Colors.black38.withOpacity(0.12),
-        ),
-        onPressed: (state == MQTTAppConnectionState.connectedSubscribed) ||
-            (state == MQTTAppConnectionState.connectedUnSubscribed) ||
-            (state == MQTTAppConnectionState.connected)
-            ? () {
-          _handleSubscribePress(state);
-        }
-            : null, //,
-        child: state == MQTTAppConnectionState.connectedSubscribed
-            ? const Text('Unsubscribe')
-            : const Text('Subscribe'));
-  }
 
   Widget _buildScrollableTextWith(String text) {
     return Padding(
@@ -209,45 +144,10 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
     );
   }
 
-  void _handleSubscribePress(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.connectedSubscribed) {
-      _manager.unSubscribeFromCurrentTopic();
-    } else {
-      String enteredText = _topicTextController.text;
-      if (enteredText != null && enteredText.isNotEmpty) {
-        _manager.subScribeTo(_topicTextController.text);
-      } else {
-        _showDialog("Please enter a topic.");
-      }
-    }
-  }
 
   void _publishMessage(String text) {
     deviceName=_manager.identifier;
     final String message = type+'/'+ deviceName +'/'+ text;
     _manager.publish(message);
   }
-
-  void _showDialog(String message) {
-    // flutter defined function
-    showDialog(
-      context: _context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Error"),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
 }
