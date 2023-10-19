@@ -1,12 +1,14 @@
-import 'package:balooner/models/Baloon.dart';
+import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:balooner/models/Player.dart';
+import 'package:balooner/models/Baloon.dart';
 import 'package:balooner/services/mqtt_service.dart';
 import 'package:flame/flame.dart';
-import 'package:flame/game.dart';
 
-class BaloonerGame extends FlameGame with HasCollisionDetection {
-  late MQTTManager _mqttManager;
 
+class BaloonerGame extends FlameGame  with HasCollisionDetection {
+   late MQTTManager _mqttManager;
+     Timer timer=Timer(15);
   MQTTManager get mqttManager => _mqttManager;
 
   set mqttManager(MQTTManager value) {
@@ -29,6 +31,7 @@ class BaloonerGame extends FlameGame with HasCollisionDetection {
     final devices = mqttManager.devicesCount;
 
     createPlayersAndBalloons(devices);
+    timer.start();
   }
 
   void createPlayersAndBalloons(int numberOfPlayers) {
@@ -60,6 +63,18 @@ class BaloonerGame extends FlameGame with HasCollisionDetection {
     }
   }
 
+   @override
+   void update(double dt) {
+     super.update(dt);
+      timer.update(dt);
+     // Check if the timer has finished
+     if (timer.finished) {
+        print('game over');
+       overlays.add('GameOver');
+     }
+   }
+
+
   @override
   void onRemove() {
     // Optional based on your game needs.
@@ -69,4 +84,7 @@ class BaloonerGame extends FlameGame with HasCollisionDetection {
     Flame.assets.clearCache();
     // Any other code that you want to run when the game is removed.
   }
+   void reset(){
+    for (var player in players) {player.score==0; }}
+
 }

@@ -1,4 +1,5 @@
 import 'package:balooner/game/balooner_game.dart';
+import 'package:balooner/game/game_Over.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
 import 'package:balooner/services/mqtt_service.dart';
@@ -17,19 +18,19 @@ class DisplayScreen extends ConsumerStatefulWidget {
 class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   final _controller = ScrollController();
   late MQTTManager _manager = MQTTManager();
-  late BaloonerGame game;
+  late BaloonerGame baloonerGame;
 
   @override
   void initState() {
     super.initState();
     _manager = ref.read(mqttManagerProvider);
-    game = BaloonerGame(_manager);
+    baloonerGame = BaloonerGame(_manager);
   }
 
   @override
   Widget build(BuildContext context) {
     _manager = ref.watch(mqttManagerProvider);
-    game.updateMqttManager(_manager);
+    baloonerGame.updateMqttManager(_manager);
     print(" the state upon build is ${_manager.currentState.getHistoryText}");
 
     if (_controller.hasClients) {
@@ -77,9 +78,18 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                 _manager.currentState.getAppConnectionState),
           );
         }),
-        // Include the Game widget and pass the GameManager
         Expanded(
-          child: GameWidget(game: game),
+          child: GameWidget(game: baloonerGame,
+    overlayBuilderMap: {
+    'GameOver': (_, game) {
+    if (baloonerGame.timer.finished) {
+    // Display your custom game over widget here
+    return GameOver(game: baloonerGame);
+    }
+    return Container();
+    },
+    },
+        ),
         ),
       ],
     );

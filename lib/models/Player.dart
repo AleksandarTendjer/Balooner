@@ -44,24 +44,32 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
 
     }
   }
+  void move(Vector2 delta) {
+    position.add(delta);
+  }
   void updatePositionOnCommand(String deviceCommand) {
     final double moveSpeed = 15; // Adjust this value to control the player's movement speed
     print('deviceCommand is $deviceCommand');
     print('positition player is ${position.x} and ${position.y}');
+    Vector2 currentPosition=position;
   final command=deviceCommand.split('/').last;
   print('$command');
     switch (command) {
       case "up":
-        position.y -= moveSpeed; // Move the player up
+        currentPosition.y -= moveSpeed;
+        move(position);
         break;
       case "down":
-        position.y += moveSpeed; // Move the player down
+        currentPosition.y += moveSpeed;
+        move(position);
         break;
       case "left":
-        position.x -= moveSpeed; // Move the player left
+        currentPosition.x -= moveSpeed;
+        move(position);
         break;
       case "right":
-        position.x += moveSpeed; // Move the player right
+        currentPosition.x += moveSpeed;
+        move(position);
         break;
       default:
       // Handle other commands or errors
