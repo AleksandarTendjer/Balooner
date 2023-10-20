@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:balooner/game/baloon_Manager.dart';
 import 'package:balooner/game/game_world.dart';
 import 'package:flame/components.dart';
@@ -10,7 +12,7 @@ import 'package:flame/flame.dart';
 
 class BaloonerGame extends FlameGame  with HasCollisionDetection {
    late MQTTManager _mqttManager;
-     Timer timer=Timer(15);
+     Timer timer=Timer(100);
    final GameWorld game_world = GameWorld();
    late CameraComponent primaryCamera;
   late BalLoonManager balloonManager;
@@ -60,8 +62,11 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
         position:  Vector2(canvasSize.x/2, canvasSize.y/2)
       );
       players.add(player);
+      // Create text component for player score.
 
+      game_world.add(player.playerScore);
     }
+
     game_world.addAll(players);
   }
 
@@ -77,6 +82,7 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
    void update(double dt) {
      super.update(dt);
       timer.update(dt);
+
      // Check if the timer has finished
      if (timer.finished) {
         print('game over');

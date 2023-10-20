@@ -4,6 +4,7 @@ import 'package:balooner/services/mqtt_service.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
+import 'package:flutter/material.dart';
 
 
 
@@ -11,7 +12,17 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   late int score=0;
 
   late MQTTManager mqttManager;
-
+  var playerScore = TextComponent(
+    text: 'Score: 0',
+    position: Vector2(10, 10),
+    textRenderer: TextPaint(
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 12,
+        fontFamily: 'BungeeInline',
+      ),
+    ),
+  );
   void updateMqttManager(MQTTManager newManager) {
     mqttManager = newManager;
     print("updated the manager for the player this");
@@ -40,6 +51,7 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
     if (other is Balloon) {
       score++;
+      print("after collision score is ${score}");
       other.removeFromParent();
 
     }
@@ -49,8 +61,6 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   }
   void updatePositionOnCommand(String deviceCommand) {
     final double moveSpeed = 15; // Adjust this value to control the player's movement speed
-    print('deviceCommand is $deviceCommand');
-    print('positition player is ${position.x} and ${position.y}');
     Vector2 currentPosition=position;
   final command=deviceCommand.split('/').last;
   print('$command');
@@ -82,6 +92,8 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
     this.updatePositionOnCommand(command);
     super.update(dt);
     mqttManager.currentState.clearText();
+    playerScore.text = 'Score: ${score}';
+
   }
 
 }

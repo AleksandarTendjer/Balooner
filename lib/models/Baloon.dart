@@ -6,7 +6,7 @@ import 'package:flame/components.dart';
 
 
 
-class Balloon  extends SpriteAnimationComponent
+class Balloon  extends SpriteComponent
 with HasGameRef<BaloonerGame>  {
   double speedY = 1.0; // Initial vertical speed
   double changeDirectionTime = 3.0; // Time to change direction (in seconds)
@@ -19,14 +19,7 @@ with HasGameRef<BaloonerGame>  {
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    animation = SpriteAnimation.fromFrameData(
-      gameRef.images.fromCache('star.png'),
-      SpriteAnimationData.sequenced(
-        amount: 4,
-        textureSize: Vector2.all(16),
-        stepTime: 0.70,
-      ),
-    );
+    sprite = Sprite(gameRef.images.fromCache('star.png'),srcSize: Vector2.all(16));
     add(RectangleHitbox()..collisionType = CollisionType.passive);
 
   }
