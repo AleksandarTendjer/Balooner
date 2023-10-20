@@ -8,8 +8,7 @@ import 'package:flame/components.dart';
 
 class Balloon  extends SpriteAnimationComponent
 with HasGameRef<BaloonerGame>  {
-  double speedX = 1.0; // Initial horizontal speed
-  double speedY = 0.0; // Initial vertical speed
+  double speedY = 1.0; // Initial vertical speed
   double changeDirectionTime = 3.0; // Time to change direction (in seconds)
   double elapsedTime = 0.0; // Elapsed time since the last direction change
 
@@ -35,25 +34,10 @@ with HasGameRef<BaloonerGame>  {
 
   @override
   void update(double dt) {
-    if (position.x < 0 || position.x > gameRef.size.x) {
-      speedX = -speedX; // Reverse horizontal direction
-    }
-    if (position.y < 0 || position.y > gameRef.size.y) {
-      speedY = -speedY; // Reverse vertical direction
-    }
-    elapsedTime += dt;
-    position.x += speedX*10;
-    position.y += speedY*10;
-
-    print('positition ballon is ${position.x} and ${position.y}');
-    if (elapsedTime >= changeDirectionTime) {
-      final random = Random();
-      speedX = (random.nextDouble() - 0.5) * 2.0; // Random horizontal speed between -1 and 1
-      speedY = (random.nextDouble() - 0.5) * 2.0; // Random vertical speed between -1 and 1
-
-      elapsedTime = 0.0;
-    }
     super.update(dt);
-
+    position+=Vector2(0,1)*speedY*10 * dt;
+    if(position.y> game.fixedResolution.y) {
+      removeFromParent();
+    }
   }
 }

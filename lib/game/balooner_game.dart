@@ -1,3 +1,5 @@
+import 'package:balooner/game/baloon_Manager.dart';
+import 'package:balooner/game/game_world.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:balooner/models/Player.dart';
@@ -9,7 +11,12 @@ import 'package:flame/flame.dart';
 class BaloonerGame extends FlameGame  with HasCollisionDetection {
    late MQTTManager _mqttManager;
      Timer timer=Timer(15);
-  MQTTManager get mqttManager => _mqttManager;
+   final GameWorld game_world = GameWorld();
+   late CameraComponent primaryCamera;
+  late BalLoonManager balloonManager;
+   MQTTManager get mqttManager => _mqttManager;
+   // Returns the size of the playable area of the game window.
+   Vector2 fixedResolution = Vector2(540, 960);
 
   set mqttManager(MQTTManager value) {
     _mqttManager = value;
@@ -22,19 +29,30 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     print("new ballooner game isntance");
     _mqttManager = mqttManager;
     updateMqttManager(mqttManager);
+    balloonManager=BalLoonManager();
   }
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
+   await add(game_world);
     await images.loadAll(['water_enemy.png', 'star.png']);
     final devices = mqttManager.devicesCount;
-
+    // Somewhere in your code.
+    primaryCamera = CameraComponent.withFixedResolution(
+      world: world,
+      width: fixedResolution.x,
+      height: fixedResolution.y,
+    )..viewfinder.position = fixedResolution / 2;
+    await add(primaryCamera);
     createPlayersAndBalloons(devices);
+
+    game_world.add(balloonManager);
     timer.start();
   }
 
-  void createPlayersAndBalloons(int numberOfPlayers) {
+
+   void createPlayersAndBalloons(int numberOfPlayers) {
     for (var i = 0; i < numberOfPlayers; i++) {
       print('canvas size is: ${canvasSize.x/2} and ${canvasSize.y/2}');
       final player =  Player(
@@ -42,17 +60,9 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
         position:  Vector2(canvasSize.x/2, canvasSize.y/2)
       );
       players.add(player);
-      for (var i = 0; i < 10; i++) {
-        final balloon = Balloon(
-            position: Vector2(
-          canvasSize.x / 2 + i * 20,
-          canvasSize.y / 2 + i * 20,
-        ));
-        balloons.add(balloon);
-      }
+
     }
-    addAll(players);
-    addAll(balloons);
+    game_world.addAll(players);
   }
 
   void updateMqttManager(MQTTManager newManager) {
@@ -70,7 +80,10 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
      // Check if the timer has finished
      if (timer.finished) {
         print('game over');
+        game_world.removeAll(players);
+        game_world.removeAll(balloons);
        overlays.add('GameOver');
+        pauseEngine();
      }
    }
 
@@ -84,6 +97,7 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     Flame.assets.clearCache();
     // Any other code that you want to run when the game is removed.
   }
+
    void reset(){
     for (var player in players) {player.score==0; }}
 
