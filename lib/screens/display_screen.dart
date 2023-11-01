@@ -37,11 +37,19 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
       _controller.jumpTo(_controller.position.maxScrollExtent);
     }
 
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: _manager.currentState == null
-          ? CircularProgressIndicator()
-          : _buildColumn(_manager),
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('background.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        appBar: _buildAppBar(context),
+        body: _manager.currentState == null
+            ? CircularProgressIndicator()
+            : _buildColumn(_manager),
+      ),
     );
   }
 
@@ -59,7 +67,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
               onTap: () {
                 Navigator.of(context).pushNamed('settings_route');
               },
-              child: Icon(
+              child: const Icon(
                 Icons.settings,
                 size: 26.0,
               ),

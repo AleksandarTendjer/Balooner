@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+
 import '../models/mqtt_app_state.dart';
 
 class MQTTManager extends ChangeNotifier {
@@ -72,6 +71,13 @@ class MQTTManager extends ChangeNotifier {
     _client!.publishMessage(_topic, MqttQos.exactlyOnce, builder.payload!);
   }
 
+  void publishRetained(String command) {
+    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+    builder.addString(command);
+    _client!.publishMessage(_topic, MqttQos.exactlyOnce, builder.payload!,
+        retain: true);
+  }
+
   void onSubscribed(String topic) {
     print('Subscribed to $topic');
     _currentState
@@ -80,7 +86,7 @@ class MQTTManager extends ChangeNotifier {
     _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
       final String pt =
-      MqttPublishPayload.bytesToStringAsString(recMess.payload.message!);
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message!);
       _currentState.setReceivedCommand(pt);
       updateState();
       print(

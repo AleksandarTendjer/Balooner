@@ -1,14 +1,12 @@
-import 'dart:io';
 import 'package:balooner/helpers/random_generator.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
-import 'package:balooner/services/mqtt_service.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
-import 'package:balooner/widgets/status_bar.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
+import 'package:balooner/services/mqtt_service.dart';
+import 'package:balooner/widgets/status_bar.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-class SettingsScreen extends ConsumerStatefulWidget {
 
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
@@ -22,12 +20,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-     _manager = ref.watch(mqttManagerProvider);
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: _manager.currentState == null
-          ? CircularProgressIndicator()
-          : _buildColumn(_manager),
+    _manager = ref.watch(mqttManagerProvider);
+
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/background.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        appBar: _buildAppBar(context),
+        body: _manager.currentState == null
+            ? CircularProgressIndicator()
+            : _buildColumn(_manager),
+      ),
     );
   }
 
@@ -122,7 +129,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _configureAndConnect() {
     String id = 'device_'+ RandomGenerator.md5RandomString();
-
     _manager.initializeMQTTClient(
         host: _hostTextController.text, identifier: id);
     _manager.connect();

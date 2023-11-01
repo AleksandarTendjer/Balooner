@@ -24,12 +24,20 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
     if (_controller.hasClients) {
       _controller.jumpTo(_controller.position.maxScrollExtent);
     }
-
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: _manager.currentState == null
-          ? CircularProgressIndicator()
-          : _buildColumn(_manager),
+    setListenerToDeviceCount();
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/background.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        appBar: _buildAppBar(context),
+        body: _manager.currentState == null
+            ? const CircularProgressIndicator()
+            : _buildColumn(_manager),
+      ),
     );
   }
 
@@ -44,7 +52,7 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
             onTap: () {
               Navigator.of(context).pushNamed('settings_route');
             },
-            child: Icon(
+            child: const Icon(
               Icons.settings,
               size: 26.0,
             ),
@@ -58,12 +66,16 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
     return Column(
       children: <Widget>[
         StatusBar(
-          statusMessage:
-          prepareStateMessageFrom(manager.currentState.getAppConnectionState),
+          statusMessage: prepareStateMessageFrom(
+              manager.currentState.getAppConnectionState),
         ),
         _buildEditableColumn(manager.currentState),
       ],
     );
+  }
+
+  void setListenerToDeviceCount() {
+    _manager.subScribeTo('connected_device');
   }
 
   Widget _buildEditableColumn(MQTTAppState currentAppState) {
@@ -84,23 +96,24 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _buildPredefinedButton('Up', 'up',currentAppState),
+            _buildPredefinedButton('Up', 'up', currentAppState),
           ],
         ),
-        SizedBox(height: 10), // Add some vertical spacing
+        const SizedBox(height: 10), // Add some vertical spacing
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            _buildPredefinedButton('Left', 'left',currentAppState),
-            SizedBox(width: 20), // Add horizontal spacing between "left" and "right"
-            _buildPredefinedButton('Right', 'right',currentAppState),
+            _buildPredefinedButton('Left', 'left', currentAppState),
+            const SizedBox(width: 20),
+            // Add horizontal spacing between "left" and "right"
+            _buildPredefinedButton('Right', 'right', currentAppState),
           ],
         ),
-        SizedBox(height: 10), // Add some vertical spacing
+        const SizedBox(height: 10), // Add some vertical spacing
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _buildPredefinedButton('Down', 'down',currentAppState),
+            _buildPredefinedButton('Down', 'down', currentAppState),
           ],
         ),
       ],
@@ -108,21 +121,21 @@ class _ControllsScreenState extends ConsumerState<ControllsScreen> {
   }
 
   Widget _buildPredefinedButton(String buttonText, String predefinedText, MQTTAppState currentAppState) {
-
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.green,
-        disabledForegroundColor: Colors.black38.withOpacity(0.38),
-        disabledBackgroundColor: Colors.black38.withOpacity(0.12),
-        textStyle: TextStyle(color: Colors.white),
-      ),
-      child: Text(buttonText),
-      onPressed:  currentAppState.getAppConnectionState == MQTTAppConnectionState.connectedSubscribed
-          ? () {
-        _publishMessage(predefinedText);
-      }   : null
-    );
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.green,
+          disabledForegroundColor: Colors.black38.withOpacity(0.38),
+          disabledBackgroundColor: Colors.black38.withOpacity(0.12),
+          textStyle: const TextStyle(color: Colors.white),
+        ),
+        onPressed: currentAppState.getAppConnectionState ==
+                MQTTAppConnectionState.connectedSubscribed
+            ? () {
+                _publishMessage(predefinedText);
+              }
+            : null,
+        child: Text(buttonText));
   }
 
   Widget _buildScrollableTextWith(String text) {

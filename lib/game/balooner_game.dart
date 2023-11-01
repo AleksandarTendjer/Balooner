@@ -1,14 +1,11 @@
-import 'dart:ui';
-
 import 'package:balooner/game/baloon_Manager.dart';
 import 'package:balooner/game/game_world.dart';
-import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:balooner/models/Player.dart';
 import 'package:balooner/models/Baloon.dart';
+import 'package:balooner/models/Player.dart';
 import 'package:balooner/services/mqtt_service.dart';
+import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-
+import 'package:flame/game.dart';
 
 class BaloonerGame extends FlameGame  with HasCollisionDetection {
    late MQTTManager _mqttManager;
@@ -40,7 +37,6 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
    await add(game_world);
     await images.loadAll(['water_enemy.png', 'star.png']);
     final devices = mqttManager.devicesCount;
-    // Somewhere in your code.
     primaryCamera = CameraComponent.withFixedResolution(
       world: world,
       width: fixedResolution.x,
@@ -62,7 +58,6 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
         position:  Vector2(canvasSize.x/2, canvasSize.y/2)
       );
       players.add(player);
-      // Create text component for player score.
 
       game_world.add(player.playerScore);
     }
@@ -83,7 +78,6 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
      super.update(dt);
       timer.update(dt);
 
-     // Check if the timer has finished
      if (timer.finished) {
         print('game over');
         game_world.removeAll(players);
@@ -96,12 +90,10 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
 
   @override
   void onRemove() {
-    // Optional based on your game needs.
     removeAll(children);
     processLifecycleEvents();
     Flame.images.clearCache();
     Flame.assets.clearCache();
-    // Any other code that you want to run when the game is removed.
   }
 
    void reset(){

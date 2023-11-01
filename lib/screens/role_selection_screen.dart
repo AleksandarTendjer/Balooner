@@ -30,11 +30,19 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       _controller.jumpTo(_controller.position.maxScrollExtent);
     }
 
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: _manager.currentState == null
-          ? CircularProgressIndicator()
-          : _buildColumn(_manager),
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('./assets/images/background.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        appBar: _buildAppBar(context),
+        body: _manager.currentState == null
+            ? CircularProgressIndicator()
+            : _buildColumn(_manager),
+      ),
     );
   }
   AppBar _buildAppBar(BuildContext context) {

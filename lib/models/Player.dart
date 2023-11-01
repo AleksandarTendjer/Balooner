@@ -3,7 +3,6 @@ import 'package:balooner/models/Baloon.dart';
 import 'package:balooner/services/mqtt_service.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 
 
@@ -51,19 +50,22 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent  other) {
     if (other is Balloon) {
       score++;
-      print("after collision score is ${score}");
       other.removeFromParent();
-
+    } else if (other is Player) {
+      other.position -= Vector2(10, 10);
+      print(" collision with player ");
     }
   }
   void move(Vector2 delta) {
     position.add(delta);
   }
   void updatePositionOnCommand(String deviceCommand) {
-    final double moveSpeed = 15; // Adjust this value to control the player's movement speed
-    Vector2 currentPosition=position;
-  final command=deviceCommand.split('/').last;
-  print('$command');
+    final double moveSpeed =
+        15; // Adjust this value to control the player's movement speed
+    Vector2 currentPosition = position;
+
+    final command = deviceCommand.split('/').last;
+    print('$command');
     switch (command) {
       case "up":
         currentPosition.y -= moveSpeed;
