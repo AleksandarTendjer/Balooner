@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DisplayScreen extends ConsumerStatefulWidget {
-  const DisplayScreen({Key? key}) : super(key: key);
+   DisplayScreen({Key? key}) : super(key: key);
 
   @override
   _DisplayScreenState createState() => _DisplayScreenState();

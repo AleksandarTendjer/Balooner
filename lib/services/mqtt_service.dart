@@ -17,7 +17,7 @@ class MQTTManager extends ChangeNotifier {
   }
   String? _host;
   String _topic = "";
-
+  String? get topic => _topic;
 
   void initializeMQTTClient({
     required String host,

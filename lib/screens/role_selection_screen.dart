@@ -2,21 +2,23 @@ import 'package:balooner/models/mqtt_app_state.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
 import 'package:balooner/screens/controlls_screen.dart';
 import 'package:balooner/screens/display_screen.dart';
+import 'package:balooner/services/database_service.dart';
 import 'package:balooner/services/mqtt_service.dart'; // Import your MQTT service file
 import 'package:balooner/widgets/status_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RoleSelectionScreen extends ConsumerStatefulWidget {
-  const RoleSelectionScreen({super.key});
+  RoleSelectionScreen({super.key});
 
-  @override
   @override
   ConsumerState<RoleSelectionScreen> createState() =>
       _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
+  final DatabaseService _databaseService = DatabaseService();
+
   final _controller = ScrollController();
   late MQTTManager _manager;
   final TextEditingController _topicTextController = TextEditingController();
@@ -45,6 +47,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       ),
     );
   }
+
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       title: const Text('MQTT'),
@@ -65,6 +68,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       ],
     );
   }
+
   Widget _buildColumn(MQTTManager manager) {
     return Column(
       children: <Widget>[
@@ -76,6 +80,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       ],
     );
   }
+
   Widget _buildEditableColumn(MQTTAppState currentAppState) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -107,8 +112,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
     );
   }
 
-  Widget _buildTopicSubscribeRow(
-      MQTTAppState currentAppState, String roleType) {
+  Widget _buildTopicSubscribeRow(MQTTAppState currentAppState, String roleType) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
@@ -138,14 +142,13 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       controller: controller,
       decoration: InputDecoration(
         contentPadding:
-            const EdgeInsets.only(left: 0, bottom: 0, top: 0, right: 0),
+        const EdgeInsets.only(left: 0, bottom: 0, top: 0, right: 0),
         labelText: hintText,
       ),
     );
   }
 
-  Widget _buildSubscribeButtonFrom(
-      MQTTAppConnectionState state, String roleType) {
+  Widget _buildSubscribeButtonFrom(MQTTAppConnectionState state, String roleType) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
@@ -154,11 +157,11 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
         disabledBackgroundColor: Colors.black38.withOpacity(0.12),
       ),
       onPressed: (state == MQTTAppConnectionState.connectedSubscribed) ||
-              (state == MQTTAppConnectionState.connectedUnSubscribed) ||
-              (state == MQTTAppConnectionState.connected)
+          (state == MQTTAppConnectionState.connectedUnSubscribed) ||
+          (state == MQTTAppConnectionState.connected)
           ? () {
-              handleSubscribeAndNavigate(roleType);
-            }
+        handleSubscribeAndNavigate(roleType);
+      }
           : null,
       child: state == MQTTAppConnectionState.connectedSubscribed
           ? const Text('Unsubscribe')
@@ -166,8 +169,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
     );
   }
 
-  Widget _buildPredefinedButton(
-      String buttonText, String predefinedText, MQTTAppState currentAppState) {
+  Widget _buildPredefinedButton(String buttonText, String predefinedText, MQTTAppState currentAppState) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
@@ -178,22 +180,23 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
         ),
         child: Text(buttonText),
         onPressed: currentAppState.getAppConnectionState ==
-                MQTTAppConnectionState.connected
+            MQTTAppConnectionState.connected
             ? () {
-                if (predefinedText == 'controller') {
-                  setState(() {
-                    isControllerRowVisible = !isControllerRowVisible;
-                  });
-                  isDisplayRowVisible = false; // Hide the Display row
-                } else if (predefinedText == 'display') {
-                  setState(() {
-                    isDisplayRowVisible = !isDisplayRowVisible;
-                  });
-                  isControllerRowVisible = false; // Hide the Controller row
-                }
-              }
+          if (predefinedText == 'controller') {
+            setState(() {
+              isControllerRowVisible = !isControllerRowVisible;
+            });
+            isDisplayRowVisible = false; // Hide the Display row
+          } else if (predefinedText == 'display') {
+            setState(() {
+              isDisplayRowVisible = !isDisplayRowVisible;
+            });
+            isControllerRowVisible = false; // Hide the Controller row
+          }
+        }
             : null);
   }
+
   void _navigateToScreen(String screenName) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -211,14 +214,49 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
   }
 
   // Add a method to handle subscription and navigation
-  void handleSubscribeAndNavigate(String screenName) {
+  Future<void> handleSubscribeAndNavigate(String screenName) async {
     if (_manager.currentState.appConnectionState ==
         MQTTAppConnectionState.connectedSubscribed) {
       _manager.unSubscribeFromCurrentTopic();
     } else {
       String enteredText = _topicTextController.text;
       if (enteredText != null && enteredText.isNotEmpty) {
-        _manager.subScribeTo(_topicTextController.text);
+        final targetDeviceName = _manager.identifier;
+        final connectedDevice =
+            await _databaseService.findDocumentInCollectionByField(
+                "ConnectedDevices", "deviceName", targetDeviceName);
+        _manager.subScribeTo(enteredText);
+        final room = await _databaseService.findDocumentInCollectionByField(
+            "Room", "name", enteredText);
+        if (room == null) {
+          // Create a new Room document if it doesn't exist
+          Map<String, dynamic> roomData = {
+            "name": enteredText,
+            "connectedDevices": [targetDeviceName],
+            // Add the reference to the array
+            "deviceCount": 1
+          };
+          await _databaseService.createDocument("Room", roomData);
+        } else {
+          //update the room if it does exist
+          final roomData = room.data() as Map<String, dynamic>?;
+          if (roomData != null) {
+            List<dynamic> connectedDevices =
+                roomData["connectedDevices"] ?? <dynamic>[];
+            int deviceCount = roomData["deviceCount"] ?? 0;
+            connectedDevices.add(connectedDevice);
+
+            Map<String, dynamic> updatedRoomData = {
+              "name": enteredText,
+              "connectedDevices": connectedDevices,
+              // Add the reference to the array
+              "deviceCount": deviceCount + 1
+            };
+
+            await _databaseService.updateDocument(
+                "Room", room.id, updatedRoomData);
+          }
+        }
       }
       // Navigate based on screenName
       _navigateToScreen(screenName);

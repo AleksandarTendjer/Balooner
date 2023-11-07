@@ -1,16 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late FirebaseFirestore _firestore;
 
-  Future<void> createDocument(
+  DatabaseService() {
+    _firestore = FirebaseFirestore.instance;
+  }
+
+  Future<DocumentReference> createDocument(
       String collection, Map<String, dynamic> data) async {
-    await _firestore.collection(collection).add(data);
+    DocumentReference documentReference =
+        await _firestore.collection(collection).add(data);
+    return documentReference;
   }
 
   Future<DocumentSnapshot> readDocument(
       String collection, String documentId) async {
-    return await _firestore.collection(collection).doc(documentId).get();
+    DocumentSnapshot documentSnapshot =
+        await _firestore.collection(collection).doc(documentId).get();
+    return documentSnapshot;
   }
 
   Future<void> updateDocument(
@@ -30,6 +38,29 @@ class DatabaseService {
 
   Future<DocumentSnapshot> getDocumentFromCollectionById(
       String collection, String documentId) async {
-    return await _firestore.collection(collection).doc(documentId).get();
+    DocumentSnapshot documentSnapshot =
+        await _firestore.collection(collection).doc(documentId).get();
+    return documentSnapshot;
+  }
+
+  Future<QueryDocumentSnapshot?> findDocumentInCollectionByField(
+      String collectionName, String fieldName, dynamic value) async {
+    final documents = await getDocumentsFromCollection(collectionName);
+    QueryDocumentSnapshot? targetDocument;
+
+    for (var document in documents) {
+      final Map<String, dynamic>? documentData =
+          document.data() as Map<String, dynamic>?;
+      if (documentData != null && documentData[fieldName] == value) {
+        targetDocument = document;
+        break;
+      }
+    }
+    if (targetDocument != null) {
+      return targetDocument;
+    } else {
+      print(
+          "Document with the specified field '$fieldName' and value '$value' not found in the collection '$collectionName'.");
+    }
   }
 }

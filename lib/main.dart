@@ -1,5 +1,6 @@
 import 'package:balooner/screens/role_selection_screen.dart';
 import 'package:balooner/screens/settings_screen.dart';
+import 'package:balooner/services/database_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final databaseService = DatabaseService();
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(

@@ -1,6 +1,7 @@
 import 'package:balooner/helpers/random_generator.dart';
 import 'package:balooner/models/mqtt_app_state.dart';
 import 'package:balooner/providers/mqtt_service_provider.dart';
+import 'package:balooner/services/database_service.dart';
 import 'package:balooner/services/mqtt_service.dart';
 import 'package:balooner/widgets/status_bar.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final TextEditingController _textTextController = TextEditingController();
   late MQTTManager _manager;
   final TextEditingController _hostTextController = TextEditingController();
+  late DatabaseService _databaseService = DatabaseService();
+  late String deviceId;
+  late String _documentId;
 
   @override
   Widget build(BuildContext context) {
@@ -128,13 +132,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _configureAndConnect() {
-    String id = 'device_'+ RandomGenerator.md5RandomString();
+    String id = 'device_' + RandomGenerator.md5RandomString();
+    deviceId = id;
     _manager.initializeMQTTClient(
         host: _hostTextController.text, identifier: id);
     _manager.connect();
+    Map<String, dynamic> data = {
+      "deviceName": id,
+    };
+    _databaseService
+        .createDocument("ConnectedDevice", data)
+        .then((docRef) => {_documentId = docRef.id})
+        .catchError((error) {
+      print("Error creating document: $error");
+    });
   }
 
   void _disconnect() {
-    _manager.disconnect();
+    _databaseService
+        .deleteDocument("connectedDevice", _documentId)
+        .whenComplete(() => {_manager.disconnect()})
+        .catchError((error) {
+      print("Error deleting document: $error");
+    });
   }
 }

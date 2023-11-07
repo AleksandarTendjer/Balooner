@@ -2,20 +2,24 @@ import 'package:balooner/game/baloon_Manager.dart';
 import 'package:balooner/game/game_world.dart';
 import 'package:balooner/models/Baloon.dart';
 import 'package:balooner/models/Player.dart';
+import 'package:balooner/services/database_service.dart';
 import 'package:balooner/services/mqtt_service.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 
 class BaloonerGame extends FlameGame  with HasCollisionDetection {
-   late MQTTManager _mqttManager;
-     Timer timer=Timer(100);
-   final GameWorld game_world = GameWorld();
-   late CameraComponent primaryCamera;
+  late MQTTManager _mqttManager;
+  Timer timer = Timer(100);
+  final GameWorld game_world = GameWorld();
+  late CameraComponent primaryCamera;
   late BalLoonManager balloonManager;
-   MQTTManager get mqttManager => _mqttManager;
-   // Returns the size of the playable area of the game window.
-   Vector2 fixedResolution = Vector2(540, 960);
+
+  MQTTManager get mqttManager => _mqttManager;
+
+  // Returns the size of the playable area of the game window.
+  Vector2 fixedResolution = Vector2(540, 960);
+  final DatabaseService _databaseService = DatabaseService();
 
   set mqttManager(MQTTManager value) {
     _mqttManager = value;
@@ -34,29 +38,36 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
   @override
   Future<void> onLoad() async {
     super.onLoad();
-   await add(game_world);
+    await add(game_world);
     await images.loadAll(['water_enemy.png', 'star.png']);
-    final devices = mqttManager.devicesCount;
     primaryCamera = CameraComponent.withFixedResolution(
       world: world,
       width: fixedResolution.x,
       height: fixedResolution.y,
     )..viewfinder.position = fixedResolution / 2;
     await add(primaryCamera);
-    createPlayersAndBalloons(devices);
+    final room = await _databaseService.findDocumentInCollectionByField(
+        "Room", "name", _mqttManager.topic);
+    final roomData = room?.data() as Map<String, dynamic>?;
+    final connectedDevices = roomData?["connectedDevices"] as List<dynamic>?;
+    final listOfConnectedDevices =
+        connectedDevices?.map((dynamic item) => item.toString()).toList();
+
+    createPlayersAndBalloons(roomData?["deviceCount"], listOfConnectedDevices!);
 
     game_world.add(balloonManager);
     timer.start();
   }
 
 
-   void createPlayersAndBalloons(int numberOfPlayers) {
+  void createPlayersAndBalloons(int numberOfPlayers, List<String> deviceNames) {
     for (var i = 0; i < numberOfPlayers; i++) {
-      print('canvas size is: ${canvasSize.x/2} and ${canvasSize.y/2}');
-      final player =  Player(
-        mqttManager: mqttManager,
-        position:  Vector2(canvasSize.x/2, canvasSize.y/2)
-      );
+      print('canvas size is: ${canvasSize.x / 2} and ${canvasSize.y / 2}');
+
+      final player = Player(
+          mqttManager: mqttManager,
+          position: Vector2(canvasSize.x / 2, canvasSize.y / 2),
+          deviceName: deviceNames[i]);
       players.add(player);
 
       game_world.add(player.playerScore);
@@ -73,20 +84,19 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     }
   }
 
-   @override
-   void update(double dt) {
-     super.update(dt);
-      timer.update(dt);
+  @override
+  void update(double dt) {
+    super.update(dt);
+    timer.update(dt);
 
-     if (timer.finished) {
-        print('game over');
-        game_world.removeAll(players);
-        game_world.removeAll(balloons);
-       overlays.add('GameOver');
-        pauseEngine();
-     }
-   }
-
+    if (timer.finished) {
+      print('game over');
+      game_world.removeAll(players);
+      game_world.removeAll(balloons);
+      overlays.add('GameOver');
+      pauseEngine();
+    }
+  }
 
   @override
   void onRemove() {
@@ -96,7 +106,9 @@ class BaloonerGame extends FlameGame  with HasCollisionDetection {
     Flame.assets.clearCache();
   }
 
-   void reset(){
-    for (var player in players) {player.score==0; }}
-
+  void reset() {
+    for (var player in players) {
+      player.score == 0;
+    }
+  }
 }

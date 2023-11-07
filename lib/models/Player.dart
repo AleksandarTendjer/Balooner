@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 
 
 class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , CollisionCallbacks  {
-  late int score=0;
-
+  late int score = 0;
+  late String deviceName;
   late MQTTManager mqttManager;
   var playerScore = TextComponent(
     text: 'Score: 0',
@@ -22,15 +22,17 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
       ),
     ),
   );
+
   void updateMqttManager(MQTTManager newManager) {
     mqttManager = newManager;
     print("updated the manager for the player this");
-
   }
-  Player({
-    required super.position,
-    required this.mqttManager,
-  }) : super(size: Vector2.all(20), anchor: Anchor.center);
+
+  Player(
+      {required super.position,
+      required this.mqttManager,
+      required this.deviceName})
+      : super(size: Vector2.all(20), anchor: Anchor.center);
 
   @override
   Future<void>? onLoad() async {
@@ -63,29 +65,35 @@ class Player extends SpriteAnimationComponent with  HasGameRef<BaloonerGame> , C
     final double moveSpeed =
         15; // Adjust this value to control the player's movement speed
     Vector2 currentPosition = position;
+    final commandParts = deviceCommand.split('/');
 
-    final command = deviceCommand.split('/').last;
-    print('$command');
-    switch (command) {
-      case "up":
-        currentPosition.y -= moveSpeed;
-        move(position);
-        break;
-      case "down":
-        currentPosition.y += moveSpeed;
-        move(position);
-        break;
-      case "left":
-        currentPosition.x -= moveSpeed;
-        move(position);
-        break;
-      case "right":
-        currentPosition.x += moveSpeed;
-        move(position);
-        break;
-      default:
-      // Handle other commands or errors
-        break;
+    if (commandParts[1] == deviceName) {
+      final command = commandParts.last;
+      print('$command');
+      switch (command) {
+        case "up":
+          currentPosition.y -= moveSpeed;
+          move(position);
+          break;
+        case "down":
+          currentPosition.y += moveSpeed;
+          move(position);
+          break;
+        case "left":
+          currentPosition.x -= moveSpeed;
+          move(position);
+          break;
+        case "right":
+          currentPosition.x += moveSpeed;
+          move(position);
+          break;
+        default:
+          // Handle other commands or errors
+          break;
+      }
+    } else {
+      print(
+          'the device name does not match $deviceName !== ${commandParts[1]}');
     }
   }
   @override
